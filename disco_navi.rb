@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 ::RBNACL_LIBSODIUM_GEM_LIB_PATH = "D:/Dev/Projects/ivory-dice-rb/libsodium.dll"
 
 require 'dotenv/load'
