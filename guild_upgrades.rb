@@ -109,7 +109,7 @@ module GW2
 
       matched_upgrades =
         upgrades_in_progress
-        .deep_locate ->(k, v, _) { k == :name && v.downcase.include?(upgrade_name_downcased) }
+        .select { |u| u[:name].downcase.include?(upgrade_name_downcased) }
 
       if matched_upgrades.empty?
         event <<
