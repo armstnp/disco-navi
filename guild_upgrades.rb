@@ -107,9 +107,9 @@ module GW2
       upgrades_in_progress_ids = treasury.deep_select(:upgrade_id).uniq! * ','
       upgrades_in_progress = GW2::API::GuildUpgradeCatalogMany.request ids: upgrades_in_progress_ids
 
-      matched_upgrades = upgrades_in_progress.deep_locate lambda do |key, value, _|
-        key == :name && value.include?(upgrade_name)
-      end
+      matched_upgrades =
+        upgrades_in_progress
+        .deep_locate ->(k, v, _) { k == :name && v.downcase.include?(upgrade_name_downcased) }
 
       if matched_upgrades.empty?
         event <<
@@ -174,6 +174,11 @@ module GW2
     end
 
     private
+
+    def upgrade_name_downcased
+      @upgrade_name_downcased ||= upgrade_name.downcase
+      @upgrade_name_downcased
+    end
 
     attr_reader :guild_name, :upgrade_name, :token
   end
@@ -254,7 +259,7 @@ module GW2
       treasury_item_ids = treasury.map { |i| i[:item_id] } * ','
       treasury_items = GW2::API::ItemCatalogMany.request ids: treasury_item_ids
 
-      matched_items = treasury_items.select { |i| i[:name].include?(item_name) }
+      matched_items = treasury_items.select { |i| i[:name].downcase.include?(item_name_downcased) }
       if matched_items.empty?
         event << "Couldn't find any treasury items similar to '#{item_name}' for '#{guild_name}'"
         return
@@ -307,6 +312,11 @@ module GW2
         .sort
         .map { |u| "#{u[1]} :: #{u[0]}" }
         .join("\n")
+    end
+
+    def item_name_downcased
+      @item_name_downcased ||= item_name.downcase
+      @item_name_downcased
     end
 
     attr_reader :guild_name, :item_name, :token
