@@ -201,7 +201,7 @@ module GW2
         log
         .select { |l| l[:type] == 'treasury' }
         .select { |l| DateTime.iso8601(l[:time]) >= time_limit }
-        .each_with_object({}) do |acc, l|
+        .each_with_object({}) do |l, acc|
           item_id = l[:item_id]
           item_hash = acc.fetch(item_id, count: 0)
           item_hash[:count] = item_hash[:count] + l[:count]
@@ -271,7 +271,7 @@ module GW2
       upgrades_by_id =
         GW2::API::GuildUpgradeCatalogMany
         .request(ids: upgrade_ids)
-        .each_with_object({}) { |m, u| m[u[:id]] = u }
+        .each_with_object({}) { |u, m| m[u[:id]] = u }
 
       total_needed = treasury_item[:needed_by].inject(0) { |sum, u| sum + u[:count] }
 
