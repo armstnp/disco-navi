@@ -84,8 +84,6 @@ module GW2
   # An event handler that emits progress info about the upgrade with the given name for the guild
   # with the given name to the event's originating channel, leveraging the given GW2 API token.
   class GuildUpgradeInfoHandler
-    # An event handler that displays upgrades using the given ingredient for the guild with the
-    # given name to the event's originating channel, using the given GW2 API token.
     def initialize(guild_name, upgrade_name, token)
       @guild_name = guild_name
       @upgrade_name = upgrade_name
