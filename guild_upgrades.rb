@@ -6,39 +6,66 @@ require './text_format'
 
 # Guild Wars 2 scope
 module GW2
-  # An event handler that emits info about the guild with the given name to the event's originating
-  # channel, leveraging the given GW2 API token.
+  # An event handler that supplies info about the guild with the given name, leveraging the given
+  # GW2 API token.
   class GuildInfoHandler
     def initialize(guild_name, token)
       @guild_name = guild_name
       @token = token
     end
 
-    def handle(event)
+    def handle(*)
       guild_ids = GW2::API::GuildSearch.request name: guild_name
-      if guild_ids.empty?
-        event << "No guild found with name '#{guild_name}'"
-        return
-      end
-      guild_id = guild_ids[0]
 
+      return ErrorResult.new "No guild found with name '#{guild_name}'" if guild_ids.empty?
+
+      guild_id = guild_ids[0]
       guild = GW2::API::GuildDetails.request id: guild_id, token: token
 
-      emblem = "https://data.gw2.fr/guild-emblem/name/#{ERB::Util.url_encode(guild[:name])}.png"
+      GuildInfoResult.new guild
+    end
 
-      event.channel.send_embed do |embed|
-        embed.title = "#{guild[:name]} [#{guild[:tag]}] - Level #{guild[:level]}"
-        embed.description = guild[:motd]
+    private
+
+    attr_reader :guild_name, :token
+  end
+
+  # A renderable result concerning guild information.
+  class GuildInfoResult
+    def initialize(guild)
+      @name, @tag, @level, @motd, @aetherium, @favor =
+        guild.values_at(:name, :tag, :level, :motd, :aetherium, :favor)
+    end
+
+    def render(discord_renderable)
+      discord_renderable.channel.send_embed do |embed|
+        embed.title = "#{name} [#{tag}] - Level #{level}"
+        embed.description = motd
         embed.thumbnail = { url: emblem }
-        embed.add_field(name: 'Aetherium', value: guild[:aetherium])
-        embed.add_field(name: 'Guild Favor', value: guild[:favor])
+        embed.add_field(name: 'Aetherium', value: aetherium)
+        embed.add_field(name: 'Guild Favor', value: favor)
         embed
       end
     end
 
     private
 
-    attr_reader :guild_name, :token
+    def emblem
+      "https://data.gw2.fr/guild-emblem/name/#{ERB::Util.url_encode(name)}.png"
+    end
+
+    attr_reader :name, :tag, :level, :motd, :aetherium, :favor
+  end
+
+  # A renderable result concerning a user input error or failure.
+  class ErrorResult
+    def initialize(message)
+      @message = message
+    end
+
+    def render(discord_renderable)
+      discord_renderable << @message
+    end
   end
 
   # An event handler that emits a list of available upgrades for the guild with the given name to
@@ -83,6 +110,7 @@ module GW2
 
   # An event handler that emits progress info about the upgrade with the given name for the guild
   # with the given name to the event's originating channel, leveraging the given GW2 API token.
+  # $gw2 guild upgrade 'The Shard Warband' 'Lumber'
   class GuildUpgradeInfoHandler
     def initialize(guild_name, upgrade_name, token)
       @guild_name = guild_name
