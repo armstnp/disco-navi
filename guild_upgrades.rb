@@ -14,7 +14,7 @@ module GW2
       @token = token
     end
 
-    def handle(*)
+    def handle
       guild_ids = GW2::API::GuildSearch.request name: guild_name
 
       return ErrorResult.new "No guild found with name '#{guild_name}'" if guild_ids.empty?
