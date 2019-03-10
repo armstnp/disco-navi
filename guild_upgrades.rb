@@ -76,36 +76,72 @@ module GW2
       @token = token
     end
 
-    def handle(event)
+    def handle
       guild_ids = GW2::API::GuildSearch.request name: guild_name
-      if guild_ids.empty?
-        event << "No guild found with name '#{guild_name}'"
-        return
-      end
+
+      return ErrorResult.new "No guild found with name '#{guild_name}'" if guild_ids.empty?
+
       guild_id = guild_ids[0]
 
       treasury = GW2::API::GuildTreasury.request id: guild_id, token: token
 
       upgrades_in_progress_ids = treasury.deep_select(:upgrade_id).uniq! * ','
       upgrades_in_progress =
-        GW2::API::GuildUpgradeCatalogMany.request ids: upgrades_in_progress_ids
+        GW2::API::GuildUpgradeCatalogMany
+          .request(ids: upgrades_in_progress_ids)
+          .map { |u| GuildUpgrade.new u }
 
-      upgrades_by_type =
-        upgrades_in_progress
-        .map { |u| u.values_at(:type, :name) }
-        .group_by { |u| u[0] }
-        .sort
-        .map do |kv|
-          type, upgrades = kv
-          "**#{type}**\n" + (upgrades.map { |u| u[1] }.sort.map { |u| "- #{u}" } * "\n")
-        end * "\n\n"
-
-      event << upgrades_by_type
+      GuildUpgradeListResult.new upgrades_in_progress
     end
 
     private
 
     attr_reader :guild_name, :token
+  end
+
+  class GuildUpgradeListResult
+    def initialize(upgrades)
+      @upgrades = upgrades
+    end
+
+    def render(discord_renderable)
+      upgrades_by_type =
+        upgrades
+        .map { |u| [u.type, u.name] }
+        .group_by { |u| u[0] }
+        .sort
+        .map do |kv|
+          type, upgrades = kv
+          "**#{type}**\n" + (upgrades.map { |u| u[1] }.sort.map { |u| "- #{u}" } * "\n")
+        end
+        .join("\n\n")
+
+      discord_renderable << upgrades_by_type
+    end
+
+    private
+
+    attr_reader :upgrades
+  end
+
+  class GuildUpgrade
+    attr_reader :id, :name, :description, :icon, :type, :costs
+
+    def initialize(upgrade_hash)
+      @id, @name, @description, @icon, @type, costs =
+        upgrade_hash.values_at(:id, :name, :description, :icon, :type, :costs)
+      @costs = costs.map { |c| GuildUpgradeCost.new c }
+    end
+  end
+
+  class GuildUpgradeCost
+    def initialize(cost_hash)
+      @type, @count, @name, @id = cost_hash.values_at(:type, :count, :name, :id)
+    end
+
+    private
+
+    attr_reader :type, :count, :name, :id
   end
 
   # An event handler that emits progress info about the upgrade with the given name for the guild

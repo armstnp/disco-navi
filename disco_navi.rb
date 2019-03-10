@@ -173,7 +173,7 @@ end
 
 bot.message(start_with: '$gw2 guild list upgrades') do |event|
   guild_name = event.content.match(/\$gw2 guild list upgrades\s+'(.+?)'/).captures[0]
-  GW2::GuildUpgradeListHandler.new(guild_name, $gw2_api_token).handle(event)
+  GW2::GuildUpgradeListHandler.new(guild_name, $gw2_api_token).handle.render(event)
 end
 
 bot.message(start_with: '$gw2 guild list ready upgrades') do |event|
