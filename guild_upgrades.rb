@@ -6,41 +6,6 @@ require './text_format'
 
 # Guild Wars 2 scope
 module GW2
-  # An event handler that emits info about the guild with the given name to the event's originating
-  # channel, leveraging the given GW2 API token.
-  class GuildInfoHandler
-    def initialize(guild_name, token)
-      @guild_name = guild_name
-      @token = token
-    end
-
-    def handle(event)
-      guild_ids = GW2::API::GuildSearch.request name: guild_name
-      if guild_ids.empty?
-        event << "No guild found with name '#{guild_name}'"
-        return
-      end
-      guild_id = guild_ids[0]
-
-      guild = GW2::API::GuildDetails.request id: guild_id, token: token
-
-      emblem = "https://data.gw2.fr/guild-emblem/name/#{ERB::Util.url_encode(guild[:name])}.png"
-
-      event.channel.send_embed do |embed|
-        embed.title = "#{guild[:name]} [#{guild[:tag]}] - Level #{guild[:level]}"
-        embed.description = guild[:motd]
-        embed.thumbnail = { url: emblem }
-        embed.add_field(name: 'Aetherium', value: guild[:aetherium])
-        embed.add_field(name: 'Guild Favor', value: guild[:favor])
-        embed
-      end
-    end
-
-    private
-
-    attr_reader :guild_name, :token
-  end
-
   # An event handler that emits a list of available upgrades for the guild with the given name to
   # the event's originating channel, leveraging the given GW2 API token.
   class GuildUpgradeListHandler
