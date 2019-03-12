@@ -1,7 +1,5 @@
+# frozen_string_literal: true
+
 source 'https://rubygems.org'
 
-gem 'dotenv'
-gem 'hashie'
-gem 'httparty'
-gem 'parslet'
-gem 'discordrb'
+gemspec
