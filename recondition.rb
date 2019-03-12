@@ -24,6 +24,10 @@ module Recondition
   # The result will be the value returned by the appropriate block, depending on whether the value
   #  was present or not.
   # For best results, ensure both possible returned objects fill some common role.
+  #
+  # Other uses of the role include:
+  # - assume_present: returns the value if present, or raises an error if absent
+  # - assume_absent: throws if present
 
   # A value that is present. Fills the Maybe role.
   class Present
@@ -35,6 +39,14 @@ module Recondition
 
     def when_absent
       PresentWithAbsenceChecked.new value
+    end
+
+    def assume_present
+      value
+    end
+
+    def assume_absent
+      raise 'Present value was assumed to be absent.'
     end
 
     # A Present object that has been condensed, and is awaiting the absence check
@@ -67,6 +79,12 @@ module Recondition
     def when_absent
       AbsentWithAbsenceChecked.new(yield)
     end
+
+    def assume_present
+      raise 'Absent value was assumed to be present.'
+    end
+
+    def assume_absent; end
 
     # An Absent object that is awaiting condensation with an absence check
     class AbsentWithPresenceChecked
