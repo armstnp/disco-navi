@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'set'
-require './gw2_api'
-require './text_format'
+require 'disco_navi/gw2_api'
+require 'disco_navi/text_format'
 
 # Guild Wars 2 scope
 module GW2

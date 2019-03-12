@@ -1,16 +1,18 @@
 #!/usr/bin/env ruby
 
+$LOAD_PATH.unshift(File.dirname(__FILE__))
+
 ::RBNACL_LIBSODIUM_GEM_LIB_PATH = "D:/Dev/Projects/ivory-dice-rb/libsodium.dll"
 
 require 'dotenv/load'
 require 'discordrb'
 require 'discordrb/webhooks'
 require 'discordrb/webhooks/embeds'
-require './gw2'
-require './guild_upgrades'
-require './gw2/guild_info'
-require './calc'
-require './zelda_status'
+require 'disco_navi/gw2'
+require 'disco_navi/guild_upgrades'
+require 'disco_navi/gw2/guild_info'
+require 'disco_navi/calc'
+require 'disco_navi/zelda_status'
 
 #
 # If you don't yet have a token and application ID to put in here, you will need to create a bot account here:

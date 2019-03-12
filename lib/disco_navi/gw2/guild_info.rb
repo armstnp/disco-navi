@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'forwardable'
-require './gw2_api'
-require './recondition'
+require 'disco_navi/gw2_api'
+require 'disco_navi/recondition'
 
 module GW2
   class GuildInfoHandler
