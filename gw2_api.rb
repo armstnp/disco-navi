@@ -1,19 +1,19 @@
+# frozen_string_literal: true
+
 require 'hashie'
 require 'httparty'
 
 module GW2
   module API
     class Request
-      @@BASE_URL = "https://api.guildwars2.com/v2/"
+      @@BASE_URL = 'https://api.guildwars2.com/v2/'
 
       def initialize(path:, params: {})
         unless path.is_a?(Array) && path.all? { |x| x.is_a? String }
           raise "Expected path segment array; received #{path}"
         end
 
-        unless params.is_a? Hash
-          raise "Expected params hash; received #{params}"
-        end
+        raise "Expected params hash; received #{params}" unless params.is_a? Hash
 
         @path = path
         @params = params
@@ -81,7 +81,7 @@ module GW2
       end
 
       def segments
-        raise "No segments defined"
+        raise 'No segments defined'
       end
 
       def params
@@ -94,7 +94,7 @@ module GW2
 
       def full_params(context)
         ps = params
-        ps.merge!({ access_token: :token}) if authorized?
+        ps[:access_token] = :token if authorized?
         ps.map { |(k, v)| [k, (v.is_a?(Symbol) ? context.fetch(v) : v)] }.to_h
       end
 
@@ -103,7 +103,7 @@ module GW2
       end
 
       def self.request(**context)
-        self.new.request(**context).execute
+        new.request(**context).execute
       end
     end
 
