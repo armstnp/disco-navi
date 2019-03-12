@@ -2,7 +2,7 @@
 
 require 'forwardable'
 require './gw2_api'
-require './maybe'
+require './recondition'
 
 module GW2
   class GuildInfoHandler
