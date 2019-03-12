@@ -111,9 +111,23 @@ module GW2
       segments 'guild', :id
     end
 
+    class GuildLiteDetails < Endpoint
+      segments 'guild', :id
+    end
+
     class GuildDetails < Endpoint
       authorized
       segments 'guild', :id
+    end
+
+    class GuildFlexDetails
+      def self.request(**context)
+        begin
+          GuildDetails.request(**context)
+        rescue RuntimeError # TODO: Give self better HTTP error handling
+          GuildLiteDetails.request(**context)
+        end
+      end
     end
 
     class GuildSearch < Endpoint
