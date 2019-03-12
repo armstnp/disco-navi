@@ -14,6 +14,13 @@ module Recondition
     attr_reader :value
   end
 
+  # An error indicating an assumption was incorrectly made about the state of a Reconditioned object
+  class BadAssumption < StandardError
+    def initialize(msg)
+      super msg
+    end
+  end
+
   # --=== Role: Maybe ==-
   # A value that may or may not be present.
   #
@@ -46,7 +53,7 @@ module Recondition
     end
 
     def assume_absent
-      raise 'Present value was assumed to be absent.'
+      raise BadAssumption, 'Present value was assumed to be absent.'
     end
 
     # A Present object that has been condensed, and is awaiting the absence check
@@ -81,7 +88,7 @@ module Recondition
     end
 
     def assume_present
-      raise 'Absent value was assumed to be present.'
+      raise BadAssumption, 'Absent value was assumed to be present.'
     end
 
     def assume_absent; end
