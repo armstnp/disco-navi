@@ -8,6 +8,7 @@ require 'discordrb/webhooks'
 require 'discordrb/webhooks/embeds'
 require './gw2'
 require './guild_upgrades'
+require './gw2/guild_info'
 require './calc'
 require './zelda_status'
 
@@ -168,7 +169,7 @@ end
 
 bot.message(start_with: '$gw2 guild info') do |event|
   guild_name = event.content.match(/\$gw2 guild info\s+'(.+?)'/).captures[0]
-  GW2::GuildInfoHandler.new(guild_name, $gw2_api_token).handle(event)
+  GW2::GuildInfoHandler.new(event, guild_name, $gw2_api_token).handle
 end
 
 bot.message(start_with: '$gw2 guild list upgrades') do |event|
