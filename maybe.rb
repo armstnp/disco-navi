@@ -1,8 +1,16 @@
 module Recondition
-  class Present
+  module Valued
     def initialize(value)
       @value = value
     end
+
+    private
+
+    attr_reader :value
+  end
+
+  class Present
+    include Valued
 
     def when_present
       PresentWithPresenceChecked.new(yield value)
@@ -13,38 +21,22 @@ module Recondition
     end
 
     class PresentWithPresenceChecked
-      def initialize(value)
-        @value = value
-      end
+      include Valued
 
       def when_absent
         value
       end
-
-      private
-
-      attr_reader :value
     end
 
     class PresentWithAbsenceChecked
-      def initialize(value)
-        @value = value
-      end
+      include Valued
 
       def when_present
         yield value
       end
-
-      private
-
-      attr_reader :value
     end
 
     private_constant :PresentWithPresenceChecked, :PresentWithAbsenceChecked
-
-    private
-
-    attr_reader :value
   end
 
   class Absent
@@ -63,17 +55,11 @@ module Recondition
     end
 
     class AbsentWithAbsenceChecked
-      def initialize(value)
-        @value = value
-      end
+      include Valued
 
       def when_present
         value
       end
-
-      private
-
-      attr_reader :value
     end
 
     private_constant :AbsentWithPresenceChecked, :AbsentWithAbsenceChecked
