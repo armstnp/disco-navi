@@ -165,4 +165,83 @@ module Recondition
 
     private_constant :RightWithLeftChecked, :RightWithRightChecked
   end
+
+  # --=== Role: Result ===--
+  # A value that fills one of two expected slots, 'success' and 'failure'; useful for short-term
+  # results where the caller can better determine which common role it wants the value to fill than
+  # the object constructing the Result object, and has stronger labels than 'Either' for its slots.
+  #
+  # Condense its contents to a single type by chaining two messages in any order:
+  # - when_success { |value| ... }
+  # - when_failure { |value| ... }
+  #
+  # The result will be the value returned by the appropriate block, depending on whether the value
+  #  was in the success or failure slot.
+  # For best results, ensure both possible returned objects fill some common role.
+
+  # A value that is a successful result of some operation. Fills the Result role.
+  class Success
+    include Valued
+
+    def when_success
+      SuccessWithSuccessChecked.new(yield value)
+    end
+
+    def when_failure
+      SuccessWithFailureChecked.new(value)
+    end
+
+    # A success object that has been condensed, and is awaiting the failure check
+    class SuccessWithSuccessChecked
+      include Valued
+
+      def when_failure
+        value
+      end
+    end
+
+    # A success object that is awaiting condensation with a success check
+    class SuccessWithFailureChecked
+      include Valued
+
+      def when_success
+        yield value
+      end
+    end
+
+    private_constant :SuccessWithSuccessChecked, :SuccessWithFailureChecked
+  end
+
+  # A value that is the failed result of some operation. Fills the Result role.
+  class Failure
+    include Valued
+
+    def when_success
+      FailureWithSuccessChecked.new(value)
+    end
+
+    def when_failure
+      FailureWithFailureChecked.new(yield value)
+    end
+
+    # A failure object that is awaiting condensation with a failure check
+    class FailureWithSuccessChecked
+      include Valued
+
+      def when_failure
+        yield value
+      end
+    end
+
+    # A failure object that has been condensed, and is awaiting the success check
+    class FailureWithFailureChecked
+      include Valued
+
+      def when_success
+        value
+      end
+    end
+
+    private_constant :FailureWithSuccessChecked, :FailureWithFailureChecked
+  end
 end
