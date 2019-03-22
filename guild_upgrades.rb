@@ -231,6 +231,10 @@ module GW2
         if item_costs.empty? && non_item_costs.empty?
           embed.add_field(name: 'Complete!', value: 'This upgrade is ready to build!')
         end
+        embed.footer = Discordrb::Webhooks::EmbedFooter.new(
+          text: "Built for #{guild[:name]}",
+          icon_url: "https://data.gw2.fr/guild-emblem/name/#{ERB::Util.url_encode(guild[:name])}.png"
+        )
         embed
       end
     end
