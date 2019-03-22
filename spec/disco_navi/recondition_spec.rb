@@ -160,6 +160,16 @@ describe Recondition::Success do
 
       expect(condensed_value).to eql 'successx'
     end
+
+    it 'preserves its existing successful value when re-attempting on failure' do
+      condensed_value =
+        success
+        .otherwise_try { |failure_value| Recondition::Success.new(failure_value + 'x') }
+        .when_success { |value| value + 'y' }
+        .when_failure { |value| value + 'z' }
+
+      expect(condensed_value).to eql 'successy'
+    end
   end
 end
 
@@ -187,6 +197,16 @@ describe Recondition::Failure do
         .when_success { |value| value + 'x' }
 
       expect(condensed_value).to eql 'failurey'
+    end
+
+    it 'tries its provided block with its value when re-attempting on failure' do
+      condensed_value =
+        failure
+        .otherwise_try { |failure_value| Recondition::Success.new(failure_value + 'x') }
+        .when_success { |value| value + 'y' }
+        .when_failure { |value| value + 'z' }
+
+      expect(condensed_value).to eql 'failurexy'
     end
   end
 end

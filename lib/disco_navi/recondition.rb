@@ -203,6 +203,10 @@ module Recondition
   # The result will be the value returned by the appropriate block, depending on whether the value
   #  was in the success or failure slot.
   # For best results, ensure both possible returned objects fill some common role.
+  #
+  # Other condensations include:
+  # - otherwise_try: Preserves successful results, but yields failure results to the provided block,
+  #   expected to return another Result-role object.
 
   # A value that is a successful result of some operation. Fills the Result role.
   class Success
@@ -213,7 +217,11 @@ module Recondition
     end
 
     def when_failure
-      SuccessWithFailureChecked.new(value)
+      SuccessWithFailureChecked.new value
+    end
+
+    def otherwise_try
+      self
     end
 
     # A success object that has been condensed, and is awaiting the failure check
@@ -247,6 +255,10 @@ module Recondition
 
     def when_failure
       FailureWithFailureChecked.new(yield value)
+    end
+
+    def otherwise_try
+      yield value
     end
 
     # A failure object that is awaiting condensation with a failure check
