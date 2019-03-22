@@ -1,0 +1,21 @@
+#+TITLE:Increment Planning
+* Refactor Handlers to Queries [0/4]
+** TODO Refactor GW2 API module to objects
+*** Refactor endpoints to clients - w/ or w/o tokens
+*** Wrap return types in rich objects
+** TODO Cache catalog results
+*** In-memory to start
+** TODO Create higher-level GW2 queries
+*** Modify existing rich objects /or/ create wrappers for specific queries
+**** e.g. representing an upgrade as a fillable container, treasury as a dispenser, etc.
+** TODO Inject client to handler
+* Create GW2 Client by context [0/2]
+** TODO Turn direct token injection from environment into object role
+** TODO Optional: Draw guild ID from context, as well, where applicable
+* Draw context from Discord event source [0/5]
+** TODO Design context structure
+*** Account for user vs. server
+** TODO Create context storage mechanism in file
+** TODO Ensure context is readable over bot sessions
+** TODO Migrate context storage to DynamoDB
+** TODO Add mechanism for saving context fragments to storage
