@@ -6,6 +6,7 @@ require 'dotenv/load'
 require 'discordrb'
 require 'discordrb/webhooks'
 require 'discordrb/webhooks/embeds'
+require './dice'
 require './gw2'
 require './guild_upgrades'
 require './calc'
@@ -23,97 +24,23 @@ bot = Discordrb::Bot.new token: ENV['DISCORD_BOT_TOKEN'], client_id: (ENV['DISCO
 puts "This bot's invite URL is #{bot.invite_url}."
 puts 'Click on it to invite it to your server.'
 
-$r = Random.new
-$max_dice = 100000
-$die_roll_regex = /\$(\d+)d(\S+)\s*(.*)/
-$roll_char_cap = 800
 $pesters = Dir["D:/Dev/Projects/ivory-dice-rb/soundboard/*"]
 $gw2_api_token = ENV['GW2_API_TOKEN']
 $aws_access_key_id = ENV['AWS_ACCESS_KEY_ID']
 $aws_secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
 $zurpg_status = ZURPG::StatusHandler.new
 
-def beautify_int(i)
-  i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
-end
-
-def roll_numeric(dice, sides)
-  sides = Integer(sides)
-  rolls = (0...dice).collect { |_| $r.rand(sides) + 1 }
-  total = rolls.reduce(0, :+)
-
-  roll_text = rolls.collect { |x| beautify_int(x) }.reduce { |accum, x| accum << ", #{x}" }
-  roll_text = roll_text[0...$roll_char_cap] << "..." if roll_text.size > $roll_char_cap
-
-  {rolls: roll_text, result: "**Total**: #{beautify_int(total)}"}
-end
-
-def successes(x)
-  if (5..9).include?(x) then 1
-  elsif 10 == x then 2
-  else 0
-  end
-end
-
-def format_success(x)
-  s = successes(x)
-  if s == 1 then "**#{x}**"
-  elsif s == 2 then "__**#{x}**__"
-  else x.to_s
-  end
-end
-
-def roll_zelda(dice)
-  rolls = (0...dice).collect { |_| $r.rand(10) + 1 }
-
-  is_over_cap = false
-  roll_text =
-    rolls.collect { |x| format_success(x) }
-         .reduce do |accum, x|
-           if accum.length + x.length + 5 <= $roll_char_cap
-             accum << ", #{x}"
-           else
-             is_over_cap = true
-             accum
-           end
-         end
-  
-  roll_text = roll_text << '...' if is_over_cap
-
-  successes = rolls.collect { |x| successes(x) }.reduce(0, :+)
-
-  {rolls: roll_text, result: "**Successes**: #{beautify_int(successes)}"}
-end
-
-def is_zelda_die_type?(die_type)
-  die_type =~ /^((10)|Z|z)$/
-end
-
 # Respond to '$Xd___', AKA a die roll request
-bot.message(contains: $die_roll_regex) do |event|
-  num_dice, die_type, comment = event.content.match($die_roll_regex).captures
-
-  num_dice = Integer(num_dice)
-  num_dice = $max_dice if num_dice > $max_dice
-  die_noun = 'Dice'
-  die_noun = 'Die' if num_dice == 1
-
-  side_noun = die_type == "1" ? 'Side' : 'Sides'
-
-  comment = comment.strip
-
-  outcome = roll_numeric(num_dice, die_type) unless is_zelda_die_type?(die_type)
-  outcome = roll_zelda(num_dice) if is_zelda_die_type?(die_type)
-
+bot.message(contains: Dice::DIE_ROLL_REGEX) do |event|
   author_name =
     if event.author.respond_to?(:display_name)
     then event.author.display_name
     else event.author.username end
-  
-  event << "**#{author_name}**: #{outcome[:rolls]}\n#{outcome[:result]}"
+
+  message = Dice.new(event.content).roll(author_name)
+
+  event << message
 end
-
-
 
 bot.message(start_with: /\$join\s+/) do |event|
   channel_name = event.content.match(/\$join\s+(.+)/).captures[0]
