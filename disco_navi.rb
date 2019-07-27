@@ -145,6 +145,9 @@ bot.message(content: '$help') do |event|
       name: '${x}dz or ${x}dZ or ${x}d10',
       value: 'Roll x special ZURPG dice: 1-4 = 0, 5-9 = 1, 10 = 2')
     embed.add_field(
+      name: '${x}do or ${x}dO or ${x}d6',
+      value: 'Roll x special Orithan dice: 1-3 = 0, 4-5 = 1, 6 = 2')
+    embed.add_field(
       name: '$zstatus {status}',
       value: 'Sets your status')
     embed.add_field(
