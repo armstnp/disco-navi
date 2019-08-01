@@ -1,6 +1,5 @@
-$r = Random.new
-
 module Dice
+  RANDOM = Random.new
   DIE_ROLL_REGEX = /\$(\d+)d(\S+)\s*(.*)/
   ROLL_CHAR_CAP = 800
   MAX_DICE = 100000
@@ -67,7 +66,7 @@ module Dice
 
     def perform_roll
       sides = Integer(die_type)
-      rolls = (0...num_dice).collect { |_| $r.rand(sides) + 1 }
+      rolls = (0...num_dice).collect { |_| RANDOM.rand(sides) + 1 }
       total = rolls.reduce(0, :+)
 
       roll_text = rolls.collect { |x| beautify_int(x) }.reduce { |accum, x| accum << ", #{x}" }
@@ -92,7 +91,7 @@ module Dice
 
     def perform_roll
       sides = Integer(die_type)
-      rolls = (0...num_dice).collect { |_| $r.rand(sides) + 1 }
+      rolls = (0...num_dice).collect { |_| RANDOM.rand(sides) + 1 }
 
       is_over_cap = false
       roll_text =
