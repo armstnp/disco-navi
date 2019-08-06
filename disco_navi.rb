@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-::RBNACL_LIBSODIUM_GEM_LIB_PATH = "D:/Dev/Projects/ivory-dice-rb/libsodium.dll"
+::RBNACL_LIBSODIUM_GEM_LIB_PATH = 'D:/Dev/Projects/ivory-dice-rb/libsodium.dll'
 
 require 'dotenv/load'
 require 'discordrb'
@@ -35,7 +36,8 @@ bot.message(contains: Dice::DIE_ROLL_REGEX) do |event|
   author_name =
     if event.author.respond_to?(:display_name)
     then event.author.display_name
-    else event.author.username end
+    else event.author.username
+    end
 
   message = Dice.new(event.content).roll(author_name)
 
@@ -46,9 +48,9 @@ bot.message(start_with: /\$join\s+/) do |event|
   channel_name = event.content.match(/\$join\s+(.+)/).captures[0]
   voice_channels = bot.find_channel(channel_name, event.server&.name, type: 2) # 2: voice channel
 
-  if voice_channels.empty? then
+  if voice_channels.empty?
     event << "No voice channel found: '#{channel_name}'"
-  elsif voice_channels.size > 1 then
+  elsif voice_channels.size > 1
     channel_names =
       voice_channels
       .collect { |c| "#{c.server&.name}\##{c.name}" }
@@ -59,23 +61,25 @@ bot.message(start_with: /\$join\s+/) do |event|
   end
 end
 
-bot.message(content: "$leave") do |event|
+bot.message(content: '$leave') do |event|
   event.voice&.destroy
   event << "Okay, okay, I'll leave now..." unless event.voice
 end
 
-bot.message(content: "$whereyouat") do |event|
+bot.message(content: '$whereyouat') do |event|
   event << event.voice&.channel&.name
 end
 
-bot.message(start_with: "$pester") do |event|
+bot.message(start_with: '$pester') do |event|
   captures = event.content.match(/\$pester\s*(\d*)\s*(speak)?/).captures
   repetitions = 1
   repetitions = captures[0].to_i if captures[0] && !(captures[0].empty?)
   speak = true if captures[1]
   repetitions.times do
-    event.voice.play_file($pesters.sample) if event.voice
-    event.channel.send_message(["Hello!", "Hey!", "Listen!", "Look!", "Watch out!"].sample, true) if speak
+    event.voice&.play_file($pesters.sample)
+    if speak
+      event.channel.send_message(['Hello!', 'Hey!', 'Listen!', 'Look!', 'Watch out!'].sample, true)
+    end
   end
 end
 
@@ -125,9 +129,9 @@ end
 
 bot.message(start_with: '$zstatus') do |event|
   status_in = event.content.match(/\$zstatus\s*(.*)/).captures[0]
-  if status_in.nil?
-    return
-  elsif status_in.empty?
+  break if status_in.nil?
+
+  if status_in.empty?
     $zurpg_status.handle_fetch(event)
   elsif status_in.strip == 'clear'
     $zurpg_status.handle_clear(event)
@@ -137,61 +141,75 @@ bot.message(start_with: '$zstatus') do |event|
 end
 
 bot.message(content: '$help') do |event|
-  event.channel.send_embed() do |embed|
+  event.channel.send_embed do |embed|
     embed.title = 'Utility'
     embed.color = 0xAA3939
     embed.add_field(name: '${x}d{y} or ${x}D{y}', value: 'Roll x dice with y sides, e.g. $5d20')
     embed.add_field(
       name: '${x}dz or ${x}dZ or ${x}d10',
-      value: 'Roll x special ZURPG dice: 1-4 = 0, 5-9 = 1, 10 = 2')
+      value: 'Roll x special ZURPG dice: 1-4 = 0, 5-9 = 1, 10 = 2'
+    )
     embed.add_field(
       name: '${x}do or ${x}dO or ${x}d6',
-      value: 'Roll x special Orithan dice: 1-3 = 0, 4-5 = 1, 6 = 2')
+      value: 'Roll x special Orithan dice: 1-3 = 0, 4-5 = 1, 6 = 2'
+    )
     embed.add_field(
       name: '$zstatus {status}',
-      value: 'Sets your status')
+      value: 'Sets your status'
+    )
     embed.add_field(
       name: '$zstatus',
-      value: 'Displays your status')
+      value: 'Displays your status'
+    )
     embed.add_field(
       name: '$zstatus clear',
-      value: 'Clears your status')
+      value: 'Clears your status'
+    )
     embed.add_field(
       name: '$calc {expression}',
-      value: 'Do integer / rational mathematics.  No spaces allowed. +,-,*,/,(), and die rolls permitted, e.g. 10d10-5+2/(2d2+6)')
+      value: 'Do integer / rational mathematics.  No spaces allowed. +,-,*,/,(), and die rolls permitted, e.g. 10d10-5+2/(2d2+6)'
+    )
   end
-  event.channel.send_embed() do |embed|
+  event.channel.send_embed do |embed|
     embed.title = 'Voice'
     embed.color = 0x226666
     embed.add_field(
       name: '$join {voice-channel}',
-      value: 'Make Navi join a voice chat channel by name, e.g. $join General')
+      value: 'Make Navi join a voice chat channel by name, e.g. $join General'
+    )
     embed.add_field(
       name: '$pester [n] [speak]',
-      value: 'Make Navi nag people in voice n times (1 by default), and in TTS if you tell her to speak; e.g. $pester 10 speak')
+      value: 'Make Navi nag people in voice n times (1 by default), and in TTS if you tell her to speak; e.g. $pester 10 speak'
+    )
     embed.add_field(name: '$leave', value: "Make Navi leave any voice channel she's in")
   end
-  event.channel.send_embed() do |embed|
+  event.channel.send_embed do |embed|
     embed.title = 'Guild Wars 2'
     embed.color = 0x7B9F35
     embed.add_field(
       name: "$gw2 guild info '{guild-name}'",
-      value: "Show info about the given guild, e.g. $gw2 guild info 'The Shard Warband'")
+      value: "Show info about the given guild, e.g. $gw2 guild info 'The Shard Warband'"
+    )
     embed.add_field(
       name: "$gw2 guild list upgrades '{guild-name}'",
-      value: "Show upgrades in progress for the given guild, e.g. $gw2 guild list upgrades 'The Shard Warband'")
+      value: "Show upgrades in progress for the given guild, e.g. $gw2 guild list upgrades 'The Shard Warband'"
+    )
     embed.add_field(
       name: "$gw2 guild list ready upgrades '{guild-name}'",
-      value: "Show upgrades ready to build for the given guild, e.g. $gw2 guild list ready upgrades 'The Shard Warband'")
+      value: "Show upgrades ready to build for the given guild, e.g. $gw2 guild list ready upgrades 'The Shard Warband'"
+    )
     embed.add_field(
       name: "$gw2 guild upgrade '{guild-name}' '{upgrade-name}'",
-      value: "Show remaining progress for the given upgrade, e.g. $gw2 guild upgrade 'The Shard Warband' 'Tavern'")
+      value: "Show remaining progress for the given upgrade, e.g. $gw2 guild upgrade 'The Shard Warband' 'Tavern'"
+    )
     embed.add_field(
       name: "$gw2 guild contrib '{guild-name}'",
-      value: "Shows guild treasury contributions over the past day, e.g. $gw2 guild contrib 'The Shard Warband'")
+      value: "Shows guild treasury contributions over the past day, e.g. $gw2 guild contrib 'The Shard Warband'"
+    )
     embed.add_field(
       name: "$gw2 guild item upgrades '{guild-name}' '{item-name}'",
-      value: "Shows upgrades that use the given item, and quantities required, e.g. $gw2 guild item upgrades 'The Shard Warband' 'Linseed'")
+      value: "Shows upgrades that use the given item, and quantities required, e.g. $gw2 guild item upgrades 'The Shard Warband' 'Linseed'"
+    )
   end
 end
 
