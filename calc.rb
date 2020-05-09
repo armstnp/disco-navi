@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 require 'parslet'
 
 module Calculator
   class ArithmeticParser < Parslet::Parser
-    rule(:sum) {
+    rule(:sum) do
       infix_expression(
         expr,
         [product_op, 2, :left],
         [sum_op, 1, :left]
       )
-    }
+    end
 
     rule(:roll_op) { match('[dD]') }
     rule(:product_op) { str('*') | str('/') }
@@ -19,7 +21,7 @@ module Calculator
     rule(:integer) { match('[0-9]').repeat(1).as(:int) }
 
     rule(:die_roll) { die_integer.as(:dice) >> match('[dD]') >> die_integer.as(:sides) }
-    rule(:die_integer) { match('[0-9]').repeat(1).as(:die_int)}
+    rule(:die_integer) { match('[0-9]').repeat(1).as(:die_int) }
 
     rule(:paren_expr) { str('(') >> sum >> str(')') }
 
@@ -102,7 +104,7 @@ module Calculator
     end
 
     private
-    
+
     attr_reader :expr
 
     def emit_result(result, event)

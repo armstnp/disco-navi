@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'hashie'
 require 'httparty'
 
@@ -11,9 +13,7 @@ module GW2
           raise "Expected path segment array; received #{path}"
         end
 
-        unless params.is_a? Hash
-          raise "Expected params hash; received #{params}"
-        end
+        raise "Expected params hash; received #{params}" unless params.is_a? Hash
 
         @path = path
         @params = params
