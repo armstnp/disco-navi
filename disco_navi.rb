@@ -12,6 +12,7 @@ require './gw2'
 require './guild_upgrades'
 require './calc'
 require './zelda_status'
+require './zelda_log'
 
 #
 # If you don't yet have a token and application ID to put in here, you will need to create a bot account here:
@@ -140,6 +141,10 @@ bot.message(start_with: '$zstatus') do |event|
   end
 end
 
+bot.message(content: '$endlog') do |event|
+  ZURPG::ActiveLogGenerator.new(event.message).call
+end
+
 bot.message(content: '$help') do |event|
   event.channel.send_embed do |embed|
     embed.title = 'Utility'
@@ -164,6 +169,14 @@ bot.message(content: '$help') do |event|
     embed.add_field(
       name: '$zstatus clear',
       value: 'Clears your status'
+    )
+    embed.add_field(
+      name: '$startlog',
+      value: 'Sets a start point for taking a log (max 24 hrs, 100k messages)'
+    )
+    embed.add_field(
+      name: '$endlog',
+      value: 'Captures and uploads a log between this command and the most recent `$startlog` command'
     )
     embed.add_field(
       name: '$calc {expression}',
