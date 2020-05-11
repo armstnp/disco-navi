@@ -6,14 +6,17 @@ module ZURPG
     MAX_BACKSEEK_SECS = MAX_BACKSEEK_HRS * 60 * 60
     MAX_BACKSEEK_MESSAGES = 100_000
 
-    def initialize(end_log_message)
-      @end_log_message = end_log_message
+    attr_reader :start_message, :end_message
+
+    def initialize(end_message, condition)
+      @end_message = end_message
+      @condition = condition
     end
 
     def call
       status_message = channel.send_message 'Seeking backwards: 0 messages'
 
-      start_message = backseek from_message: end_log_message, recording_to_status: status_message
+      @start_message = backseek from_message: end_message, recording_to_status: status_message
       unless start_message
         error = <<~MSG
           Couldn't find the starting point to your log.
@@ -23,7 +26,8 @@ module ZURPG
         return
       end
 
-      file = LogSpitter.new(start_message, end_log_message, status_message).call
+      file = LogSpitter.new(start_message, end_message, status_message).call
+      status_message.delete
       channel.send_file File.open(file, 'r')
     end
 
@@ -35,7 +39,7 @@ module ZURPG
 
       messages = channel.history(100, from_message.id) # Retrieves in reverse order
 
-      start_message = messages.find { |m| start_of_log? m }
+      start_message = messages.find(&condition)
       return start_message if start_message
 
       last_message = messages.last
@@ -49,34 +53,22 @@ module ZURPG
       )
     end
 
-    attr_reader :end_log_message
+    attr_reader :condition
 
     def channel
-      end_log_message.channel
+      end_message.channel
     end
 
     def author_id
-      @author_id ||= end_log_message.author.id
+      @author_id ||= end_message.author.id
     end
 
     def end_timestamp
-      @end_timestamp ||= end_log_message.timestamp
+      @end_timestamp ||= end_message.timestamp
     end
 
     def earliest_start_timestamp
       @earliest_start_timestamp ||= end_timestamp - MAX_BACKSEEK_SECS
-    end
-
-    def start_of_log?(message)
-      start_log_command?(message) && matches_author?(message)
-    end
-
-    def start_log_command?(message)
-      message.content.strip.start_with? '$startlog'
-    end
-
-    def matches_author?(message)
-      message.author.id == author_id
     end
 
     def in_backseek_range?(message)
@@ -93,8 +85,10 @@ module ZURPG
 
     def call
       File.open(filename, 'w') do |f|
+        spit_message f, start_message
         curr_message = [start_message, 0]
         curr_message = spit_to f, *curr_message while curr_message
+        spit_message f, end_message
       end
       filename
     end
@@ -108,10 +102,13 @@ module ZURPG
       messages = channel.history(100, nil, from_message.id).reverse
       messages
         .take_while { |m| !end_message?(m) }
-        .map { |m| format_message m }
-        .each { |m| file.puts m }
+        .each { |m| spit_message file, m }
 
       [messages.last, tally + 100] unless messages.any? { |m| end_message? m }
+    end
+
+    def spit_message(file, message)
+      file.puts format_message(message)
     end
 
     def format_message(message)

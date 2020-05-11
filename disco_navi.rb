@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# coding: utf-8
 # frozen_string_literal: true
 
 ::RBNACL_LIBSODIUM_GEM_LIB_PATH = 'D:/Dev/Projects/ivory-dice-rb/libsodium.dll'
@@ -142,7 +143,25 @@ bot.message(start_with: '$zstatus') do |event|
 end
 
 bot.message(content: '$endlog') do |event|
-  ZURPG::ActiveLogGenerator.new(event.message).call
+  condition = lambda do |message|
+    message.content.strip.start_with?('$startlog') &&
+      message.author.id == event.message.author.id
+  end
+  ZURPG::ActiveLogGenerator.new(event.message, condition).call
+end
+
+bot.reaction_add(emoji: '🛑') do |event|
+  condition = lambda do |message|
+    message.reacted_with('✍️').any? { |user| user.id == event.user.id }
+  end
+
+  gen = ZURPG::ActiveLogGenerator.new(event.message, condition)
+  gen.call
+
+  if gen.start_message
+    gen.start_message.delete_reaction event.user, '✍️'
+    gen.end_message.delete_reaction event.user, '🛑'
+  end
 end
 
 bot.message(content: '$help') do |event|
@@ -171,12 +190,12 @@ bot.message(content: '$help') do |event|
       value: 'Clears your status'
     )
     embed.add_field(
-      name: '$startlog',
-      value: 'Sets a start point for taking a log (max 24 hrs, 100k messages)'
+      name: '$startlog _followed later by_ $endlog',
+      value: 'Captures and uploads a log between the `$startlog` and `$endlog` commands (max 24 hrs, 100k messages) _Requires message history permissions._'
     )
     embed.add_field(
-      name: '$endlog',
-      value: 'Captures and uploads a log between this command and the most recent `$startlog` command'
+      name: 'React with ✍️ _followed by_ 🛑 _on a later post_',
+      value: 'Captures and uploads a log starting with the message reacted with ✍️ and ending with the message reacted with 🛑 (max 24 hrs, 100k messages) _Requires message history permissions, and message management permissions to remove the reactions automatically._'
     )
     embed.add_field(
       name: '$calc {expression}',
