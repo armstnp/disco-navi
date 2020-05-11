@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Dice
   RANDOM = Random.new
   DIE_ROLL_REGEX = /\$(\d+)d(\S+)\s*(.*)/.freeze
